@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Result</title>
+</head>
+<body>
+    <h1>Result</h1>
+    
+    {% if savings_goals %}
+        <p>Current Savings Goals:</p>
+        <ul>
+            {% for goal in savings_goals %}
+                <li>
+                    <a href="{{ url_for('view_goal', goal_id=goal.id) }}">View Goal {{ goal.id }}</a>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No savings goals yet.</p>
+    {% endif %}
+    
+    <p>{{ message }}</p>
+</body>
+</html>

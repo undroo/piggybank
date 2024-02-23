@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Goal</title>
+</head>
+<body>
+    <h1>View Goal</h1>
+    
+    {% if goal %}
+        <p>Goal ID: {{ goal.id }}</p>
+        <p>Participant: {{ goal.name }}</p>
+        <p>Savings Goal: ${{ goal.goal|round(2) }}</p>
+        <p>Participants Count: {{ goal.participants }}</p>
+    {% else %}
+        <p>Goal not found.</p>
+    {% endif %}
+    
+    <p><a href="{{ url_for('index') }}">Back to Home</a></p>
+</body>
+</html>

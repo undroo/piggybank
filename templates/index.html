@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Savings Goal Tracker</title>
+</head>
+<body>
+    <h1>Savings Goal Tracker</h1>
+    <form method="post" action="{{ url_for('process_form') }}">
+        <label for="name">Name:</label>
+        <input type="text" id="name" name="name" required>
+        <br>
+        <label for="participants">Number of people:</label>
+        <input type="number" id="participants" name="participants" required>
+        <br>
+        <label for="savings_goal">Savings Goal ($):</label>
+        <input type="number" id="savings_goal" name="savings_goal" required>
+        <br>
+        <button type="submit">Submit</button>
+    </form>
+
+    <!-- Anchor tag to redirect to view_goal without goal_id -->
+    <br>
+    <a href="/view_goal">View Goals</a>
+</body>
+</html>
