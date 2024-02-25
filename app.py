@@ -1,12 +1,16 @@
 from flask import Flask, render_template, request, redirect, url_for
+import string
+import secrets
 
 app = Flask(__name__)
 
 # List to store user inputs
 savings_goals = []
 
-# Counter for generating unique IDs
-goal_id_counter = 1
+def generate_goal_id():
+    # Generate a random 6-character string of numbers and letters
+    return ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(6))
+
 
 @app.route('/')
 def index():
@@ -21,9 +25,9 @@ def process_form():
     participants = float(request.form.get('participants'))
 
     
+
     # Generate a unique ID for the savings goal
-    goal_id = goal_id_counter
-    goal_id_counter += 1
+    goal_id = generate_goal_id()
 
     # Add the savings goal with ID and participant count to the list
     savings_goals.append({'id': goal_id, 'name': name, 'goal': savings_goal, 'participants': participants})
@@ -44,7 +48,7 @@ def search_goal():
     # If it's a GET request, render the search_goal.html template
     return render_template('search_goal.html')
 
-@app.route('/view_goal/<int:goal_id>')
+@app.route('/view_goal/<string:goal_id>')
 def view_goal(goal_id):
     # Find the goal with the specified ID
     goal = next((goal for goal in savings_goals if goal['id'] == goal_id), None)

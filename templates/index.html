@@ -4,24 +4,46 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Savings Goal Tracker</title>
+ 
+    <!-- Bootstrap 5 CSS from CDN -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+
+    <!-- Custom styles -->
+    <style>
+        body {
+            padding: 20px; /* Adjust the value as needed */
+        }
+    </style>
 </head>
 <body>
-    <h1>Savings Goal Tracker</h1>
-    <form method="post" action="{{ url_for('process_form') }}">
-        <label for="name">Name:</label>
-        <input type="text" id="name" name="name" required>
-        <br>
-        <label for="participants">Number of people:</label>
-        <input type="number" id="participants" name="participants" required>
-        <br>
-        <label for="savings_goal">Savings Goal ($):</label>
-        <input type="number" id="savings_goal" name="savings_goal" required>
-        <br>
-        <button type="submit">Submit</button>
-    </form>
+            <h1 class="display-4">PiggyBank Tracker</h1>
+            <form method="post" action="{{ url_for('process_form') }}">
+                <div class="mb-3">
+                    <label for="name">Name:</label>
+                    <input type="text" class="form-control" placeholder="Name" id="name" name="name" required>
+                </div>
+               
+
+                <div class="mb-3">
+                    <label for="participants">Number of people:</label>
+                    <input type="number" class="form-control" id="participants" name="participants" required min="1" value="1">
+                </div>
+
+                <div class="mb-3">
+                    <label for="savings_goal">Savings Goal ($):</label>
+                    <input type="number" class="form-control" id="savings_goal" name="savings_goal" required min="0" value="0" step="0.01">
+                </div>
+                
+                
+                <button type="submit" class="btn btn-success">Submit</button>
+            </form>
 
     <!-- Anchor tag to redirect to view_goal without goal_id -->
     <br>
     <a href="/view_goal">View Goals</a>
+
+
+    <!-- Bootstrap 5 JS from CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
