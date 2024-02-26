@@ -16,27 +16,46 @@
     </style>
 </head>
 <body>
-            <h1 class="display-4">PiggyBank Tracker</h1>
-            <form method="post" action="{{ url_for('process_form') }}">
-                <div class="mb-3">
-                    <label for="name">Name:</label>
-                    <input type="text" class="form-control" placeholder="Name" id="name" name="name" required>
-                </div>
-               
+    <nav class="navbar navbar-expand-lg bg-body-tertiary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">PiggyBank Tracker</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/view_goal">View Goals</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        
+    </nav>
 
-                <div class="mb-3">
-                    <label for="participants">Number of people:</label>
-                    <input type="number" class="form-control" id="participants" name="participants" required min="1" value="1">
-                </div>
 
-                <div class="mb-3">
-                    <label for="savings_goal">Savings Goal ($):</label>
-                    <input type="number" class="form-control" id="savings_goal" name="savings_goal" required min="0" value="0" step="0.01">
-                </div>
-                
-                
-                <button type="submit" class="btn btn-success">Submit</button>
-            </form>
+
+    
+    <form method="post" action="{{ url_for('process_form') }}">
+        <div class="mb-3">
+            <label for="name">Name:</label>
+            <input type="text" class="form-control" placeholder="Name" id="name" name="name" required>
+        </div>
+        
+
+        <div class="mb-3">
+            <label for="participants">Number of people:</label>
+            <input type="number" class="form-control" id="participants" name="participants" required min="1" value="1">
+        </div>
+
+        <div class="mb-3">
+            <label for="savings_goal">Savings Goal ($):</label>
+            <input type="number" class="form-control" id="savings_goal" name="savings_goal" required min="0" value="0" step="0.01">
+        </div>
+        
+        
+        <button type="submit" class="btn btn-success">Submit</button>
+    </form>
 
     <!-- Anchor tag to redirect to view_goal without goal_id -->
     <br>
