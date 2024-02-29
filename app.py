@@ -12,9 +12,15 @@ def generate_goal_id():
     return ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(6))
 
 
-@app.route('/')
+@app.route('/', methods=['GET', 'POST'])
 def index():
-    global goal_id_counter  # Declare goal_id_counter as a global variable
+    # global goal_id_counter  # Declare goal_id_counter as a global variable
+    if request.method == 'POST':
+        # If the form is submitted, get the goal_id from the form
+        goal_id = request.form.get('goal_id')
+        
+        # Redirect to the view_goal route with the specified goal_id
+        return redirect(url_for('view_goal', goal_id=goal_id))
     return render_template('index.html')
 
 @app.route('/process_form', methods=['POST'])
@@ -36,7 +42,7 @@ def process_form():
     # Redirect to the route displaying the details of the latest goal
     return redirect(url_for('view_goal', goal_id=goal_id))
 
-@app.route('/view_goal', methods=['GET', 'POST'])
+@app.route('/search_goal', methods=['GET', 'POST'])
 def search_goal():
     if request.method == 'POST':
         # If the form is submitted, get the goal_id from the form
@@ -44,8 +50,10 @@ def search_goal():
         
         # Redirect to the view_goal route with the specified goal_id
         return redirect(url_for('view_goal', goal_id=goal_id))
-
     # If it's a GET request, render the search_goal.html template
+    goal_id = request.args.get('goal_id')
+    if goal_id is not None:
+        return redirect(url_for('view_goal', goal_id=goal_id))
     return render_template('search_goal.html')
 
 @app.route('/view_goal/<string:goal_id>')
