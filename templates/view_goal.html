@@ -21,7 +21,7 @@
     {% if goal %}
         <p>Goal ID: {{ goal.id }}</p>
         <p>Participant: {{ goal.name }}</p>
-        <p>Savings Goal: ${{ goal.goal|round(2) }}</p>
+        <p>Savings Goal: ${{ goal.savings_goal|round(2) }}</p>
         <p>Participants Count: {{ goal.participants }}</p>
     {% else %}
         <p>Goal not found.</p>
