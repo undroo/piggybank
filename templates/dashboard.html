@@ -23,7 +23,7 @@
         {% if user_goals %}
             <ul>
                 {% for goal in user_goals %}
-                    <li>{{ goal.name }} - {{ goal.savings_goal }}</li>
+                    <li>{{ goal.id }} - {{ goal.name }} - ${{ goal.savings_goal }} - {{ goal.participants }}</li>
                 {% endfor %}
             </ul>
         {% else %}
