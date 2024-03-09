@@ -134,7 +134,6 @@ def process_form():
     # Redirect to the route displaying the details of the latest goal
     return redirect(url_for('view_goal', goal_id=goal_id))
 
-# TODO: needs to be upgraded to use forms
 @app.route('/search_goal', methods=['GET', 'POST'])
 def search_goal():
     if request.method == 'POST':
