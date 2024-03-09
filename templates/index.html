@@ -18,11 +18,20 @@
 <body>
     {% include 'assets/navbar.html' %}
 
-
-
-    
     <form method="post" action="{{ url_for('process_form') }}">
+        {{ form.hidden_tag() }}
         <div class="mb-3">
+            {{ form.name.label }} {{ form.name(class="form-control") }}
+        </div>
+        <div class="mb-3">
+            {{ form.savings_goal.label }} {{ form.savings_goal(class="form-control") }}
+        </div>
+        <div class="mb-3">
+            {{ form.participants.label }} {{ form.participants(class="form-control") }}
+        </div>
+
+
+        <!-- <div class="mb-3">
             <label for="name">Name:</label>
             <input type="text" class="form-control" placeholder="Name" id="name" name="name" required>
         </div>
@@ -36,10 +45,8 @@
         <div class="mb-3">
             <label for="savings_goal">Savings Goal ($):</label>
             <input type="number" class="form-control" id="savings_goal" name="savings_goal" required min="0" value="0" step="0.01">
-        </div>
-        
-        
-        <button type="submit" class="btn btn-success">Submit</button>
+        </div> -->
+        <button type="submit" class="btn btn-success">Add Goal</button>
     </form>
 
     <!-- Bootstrap 5 JS from CDN -->
