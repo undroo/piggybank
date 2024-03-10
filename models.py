@@ -5,6 +5,12 @@ import os
 
 db = SQLAlchemy()
 
+user_goal_association = db.Table(
+    'user_goal_association',
+    db.Column('user_id', db.Integer, db.ForeignKey('user.id')),
+    db.Column('goal_id', db.Integer, db.ForeignKey('goal.id'))
+)
+
 def init_db(app):
     # Set the SQLite database file path
     db_path = os.path.join(app.root_path, 'site.db')
@@ -24,14 +30,27 @@ class Goal(db.Model):
     id = db.Column(db.String(10), primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     savings_goal = db.Column(db.Float, nullable=False)
-    participants = db.Column(db.Integer, nullable=False) # This becomes number_of_participants
-    user_id = db.Column(db.String(100), nullable=False)
+    number_of_participants = db.Column(db.Integer, nullable=False) # This becomes number_of_participants
+    user_id = db.Column(db.String(100), nullable=False) # This is the creator user_id
+    participants = db.relationship('User', 
+                                   secondary=user_goal_association, 
+                                   back_populates='goals', 
+                                   lazy='dynamic')
+
+    def add_participant(self, user):
+        """Add a participant to the goal."""
+        if user not in self.participants:
+            self.participants.append(user)
+            self.number_of_participants += 1
+
+    
 
 class User(db.Model, UserMixin):
-    # id = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.String(120), unique=True, nullable=False, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True) # This needs to be changed to a secret string
+    email = db.Column(db.String(120), unique=True, nullable=False)
     username = db.Column(db.String(50), unique=True, nullable=False)
     password = db.Column(db.String(60), nullable=False)
+    goals = db.relationship('Goal', secondary=user_goal_association, back_populates='participants', lazy='dynamic')
 
     def set_password(self, password):
         self.password = generate_password_hash(password, method='sha256')

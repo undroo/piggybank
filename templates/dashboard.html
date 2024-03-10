@@ -23,7 +23,10 @@
         {% if user_goals %}
             <ul>
                 {% for goal in user_goals %}
-                    <li>{{ goal.id }} - {{ goal.name }} - ${{ goal.savings_goal }} - {{ goal.participants }}</li>
+                    <a href="{{ url_for('view_goal', goal_id=goal.id) }}">
+                        Goal {{ goal.id }}
+                    </a>
+                    <li>{{ goal.name }} - ${{ goal.savings_goal }} - {{ goal.number_of_participants }}</li>
                 {% endfor %}
             </ul>
         {% else %}

@@ -29,3 +29,6 @@ class GoalForm(FlaskForm):
 class SearchGoalForm(FlaskForm):
     goal_id = StringField('Goal ID', validators=[DataRequired()])
     submit = SubmitField('Search Goal')
+
+class DeleteGoalForm(FlaskForm):
+    submit = SubmitField('Delete Goal')

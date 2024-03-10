@@ -22,7 +22,16 @@
         <p>Goal ID: {{ goal.id }}</p>
         <p>Participant: {{ goal.name }}</p>
         <p>Savings Goal: ${{ goal.savings_goal|round(2) }}</p>
-        <p>Participants Count: {{ goal.participants }}</p>
+        <p>Participants Count: {{ goal.number_of_participants }}</p>
+        {% if is_creator_goal %}
+            <form method="post" action="{{ url_for('delete_goal', goal_id=goal.id) }}">
+                {{ delete_form.hidden_tag() }}
+                <button type="submit" class="btn btn-danger">Delete Goal</button>
+            </form>
+        {% endif %}
+        {% if not is_participant_goal %}
+            <p>join here</p>
+        {% endif %}
     {% else %}
         <p>Goal not found.</p>
     {% endif %}

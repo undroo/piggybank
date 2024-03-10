@@ -6,7 +6,7 @@ import os
 from flask_wtf.csrf import CSRFProtect
 # Internal libraries
 from models import db, User, init_db, Goal
-from forms import RegisterForm, LoginForm, GoalForm, SearchGoalForm
+from forms import RegisterForm, LoginForm, GoalForm, SearchGoalForm, DeleteGoalForm
 
 app = Flask(__name__)
 init_db(app)
@@ -20,8 +20,16 @@ def generate_goal_id():
     # Generate a random 6-character string of numbers and letters
     return ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(6))
 
+def is_creator(user_id, goal):
+    """Check if the user is the creator of the goal."""
+    return str(goal.user_id) == str(user_id)
+
+def is_participant(user, goal):
+    """Check if the user is a participant in the goal."""
+    return user in goal.participants
 
 
+# Function for the navbar
 @app.context_processor
 def inject_search_goal_form():
     search_goal_form = SearchGoalForm()
@@ -35,10 +43,9 @@ def login():
 
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data).first()
-
         if user and user.check_password(form.password.data):
             # Log in the user (you might use Flask-Login for this)
-            session['user_id'] = user.username
+            session['user_id'] = user.id
             flash('Login successful!', 'success')
             return redirect(url_for('index'))
         else:
@@ -97,11 +104,11 @@ def dashboard():
 
     # Get the user's goals (customize this based on your database structure)
     user_id = session['user_id']
-    # This doesn't work yet
-    # user_goals = Goal.query.filter_by(user_id=user_id).all()
-    all_goals = Goal.query.all()
+    
+    user = db.session.get(User, user_id)
+    user_goals = user.goals.all()
 
-    return render_template('dashboard.html', user_goals=all_goals)
+    return render_template('dashboard.html', user_goals=user_goals)
 
 @app.route('/process_form', methods=['POST'])
 def process_form():
@@ -120,10 +127,16 @@ def process_form():
             id=goal_id,
             name=form.name.data,
             savings_goal=form.savings_goal.data,
-            participants=form.participants.data,
+            number_of_participants=form.participants.data,
             user_id=user_id
         )
+        # Get the current user and append the new goal
+        user = db.session.get(User,user_id)
+        new_goal.participants.append(user) # Add user to list of participants
+        user.goals.append(new_goal) # Add goal to list of goals for user
 
+
+        # Commit both changes in a single database transaction
         db.session.add(new_goal)
         db.session.commit()
 
@@ -155,7 +168,7 @@ def search_goal():
 def view_goal(goal_id):
     # Find the goal with the specified ID
     # goal = next((goal for goal in savings_goals if goal['id'] == goal_id), None)
-    goal = Goal.query.filter_by(id=goal_id).first()
+    goal = db.session.get(Goal, goal_id)
 
     # If goal is not found, render a template with a message
     if goal is None:
@@ -164,10 +177,53 @@ def view_goal(goal_id):
     # TODO: add more features to this view_goal page
     # ability to 'complete' goals 
     # ability to delete goals
+    # ability to join goals
     # TODO: when bank is ready, need the ability to check for payments made to this
 
+    if 'user_id' in session:
+        user_id = session['user_id']
+        user = db.session.get(User, user_id)
+        # Check if the user is the creator of the goal
+        is_creator_goal = is_creator(user_id, goal)
+        # Check if the user is a participant in the goal, creators are already participating
+        is_participant_goal = is_participant(user, goal)
+        is_participant_goal == True if is_creator_goal else is_participant_goal
+        delete_form = DeleteGoalForm()
+        return render_template('view_goal.html', 
+                               goal=goal, is_creator_goal=is_creator_goal, 
+                               is_participant_goal=is_participant_goal,
+                               delete_form=delete_form)
+    
+
     # Render the template with the specific goal
-    return render_template('view_goal.html', goal=goal)
+    return render_template('view_goal.html', goal=goal, is_creator_goal=False, is_participant_goal=False)
+
+@app.route('/delete_goal/<string:goal_id>', methods=['POST'])
+def delete_goal(goal_id):
+    # Check if the user is logged in
+    if 'user_id' not in session:
+        flash('You need to log in to delete a goal.', 'warning')
+        return redirect(url_for('login'))
+
+    user_id = session['user_id']
+    goal = db.session.get(Goal, goal_id)
+
+    # Check if the user is the creator of the goal
+    if goal and str(goal.user_id) == str(user_id):
+        try:
+            # Delete the goal and commit changes
+            db.session.refresh(goal)
+            db.session.delete(goal)
+            db.session.commit()
+            flash('Goal deleted successfully!', 'success')
+        except:
+            db.session.rollback()
+            # Retry the operation or handle it appropriately
+    else:
+        flash('You do not have permission to delete this goal.', 'danger')
+
+    return redirect(url_for('dashboard'))
+
 
 if __name__ == '__main__':
     app.run(debug=True)
