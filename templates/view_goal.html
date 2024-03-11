@@ -25,12 +25,23 @@
         <p>Participants Count: {{ goal.number_of_participants }}</p>
         {% if is_creator_goal %}
             <form method="post" action="{{ url_for('delete_goal', goal_id=goal.id) }}">
-                {{ delete_form.hidden_tag() }}
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <button type="submit" class="btn btn-danger">Delete Goal</button>
             </form>
         {% endif %}
-        {% if not is_participant_goal %}
-            <p>join here</p>
+        {% if not is_participant %}
+            <form method="post" action="{{ url_for('join_goal', goal_id=goal.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-primary">Join Goal</button>
+            </form>
+        {% else %}
+            {% if not is_creator_goal %}
+                <form method="post" action="{{ url_for('leave_goal', goal_id=goal.id) }}">
+                    <!-- Add CSRF token for security -->
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-danger">Leave Goal</button>
+                </form>
+            {% endif %}
         {% endif %}
     {% else %}
         <p>Goal not found.</p>

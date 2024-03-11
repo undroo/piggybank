@@ -32,3 +32,6 @@ class SearchGoalForm(FlaskForm):
 
 class DeleteGoalForm(FlaskForm):
     submit = SubmitField('Delete Goal')
+
+class JoinGoalForm(FlaskForm):
+    submit = SubmitField('Join Goal')

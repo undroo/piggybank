@@ -15,7 +15,6 @@ def init_db(app):
     # Set the SQLite database file path
     db_path = os.path.join(app.root_path, 'site.db')
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + db_path
-
     # Suppress a warning about track_modifications, which is unnecessary for SQLite
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['SECRET_KEY'] = 'iamapotato' # change this to use a secret file with a secret key
@@ -42,11 +41,19 @@ class Goal(db.Model):
         if user not in self.participants:
             self.participants.append(user)
             self.number_of_participants += 1
+            print(self.number_of_participants)
+
+    def remove_participant(self, user):
+        """Add a participant to the goal."""
+        if user in self.participants:
+            self.participants.remove(user)
+            self.number_of_participants -= 1
+            print(self.number_of_participants)
 
     
 
 class User(db.Model, UserMixin):
-    id = db.Column(db.Integer, primary_key=True) # This needs to be changed to a secret string
+    id = db.Column(db.String(6), primary_key=True) # This needs to be changed to a secret string
     email = db.Column(db.String(120), unique=True, nullable=False)
     username = db.Column(db.String(50), unique=True, nullable=False)
     password = db.Column(db.String(60), nullable=False)

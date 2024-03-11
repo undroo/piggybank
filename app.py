@@ -5,8 +5,8 @@ import secrets
 import os
 from flask_wtf.csrf import CSRFProtect
 # Internal libraries
-from models import db, User, init_db, Goal
-from forms import RegisterForm, LoginForm, GoalForm, SearchGoalForm, DeleteGoalForm
+from models import db, User, init_db, Goal, user_goal_association
+from forms import RegisterForm, LoginForm, GoalForm, SearchGoalForm, DeleteGoalForm, JoinGoalForm
 
 app = Flask(__name__)
 init_db(app)
@@ -18,15 +18,32 @@ csrf = CSRFProtect(app)
 # Move this to a helper.py
 def generate_goal_id():
     # Generate a random 6-character string of numbers and letters
-    return ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(6))
+    while True:
+        # Generate a random 6-digit ID
+        goal_id = ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(6))
+
+        # Check if the ID is already in use
+        if not Goal.query.filter_by(id=goal_id).first():
+            return goal_id
+
+def generate_user_id():
+    while True:
+        # Generate a random 6-digit ID
+        user_id = ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(6))
+
+        # Check if the ID is already in use
+        if not User.query.filter_by(id=user_id).first():
+            return user_id
 
 def is_creator(user_id, goal):
     """Check if the user is the creator of the goal."""
     return str(goal.user_id) == str(user_id)
 
-def is_participant(user, goal):
+def is_participant(user_id, goal_id):
     """Check if the user is a participant in the goal."""
-    return user in goal.participants
+
+    return db.session.query(user_goal_association).filter_by(user_id=user_id, goal_id=goal_id).count() > 0
+    # return user in goal.participants
 
 
 # Function for the navbar
@@ -62,6 +79,7 @@ def register():
         # You can access form data using form.username.data, form.email.data, etc.
 
         new_user = User(
+            id = generate_user_id(),
             username=form.username.data,
             email=form.email.data,
             # password=User.set_password(form.password.data)
@@ -81,7 +99,7 @@ def logout():
     # Log out the user
     session.pop('user_id', None)
     flash('You have been logged out.', 'info')
-    return redirect(url_for('index'))
+    return redirect(url_for('login'))
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -182,21 +200,24 @@ def view_goal(goal_id):
 
     if 'user_id' in session:
         user_id = session['user_id']
-        user = db.session.get(User, user_id)
+        # user = db.session.get(User, user_id)
+
         # Check if the user is the creator of the goal
         is_creator_goal = is_creator(user_id, goal)
         # Check if the user is a participant in the goal, creators are already participating
-        is_participant_goal = is_participant(user, goal)
-        is_participant_goal == True if is_creator_goal else is_participant_goal
-        delete_form = DeleteGoalForm()
+        is_participant_goal = is_participant(user_id, goal_id)
+        # is_participant_goal == True if is_creator_goal else is_participant_goal
+
         return render_template('view_goal.html', 
                                goal=goal, is_creator_goal=is_creator_goal, 
-                               is_participant_goal=is_participant_goal,
-                               delete_form=delete_form)
+                               is_participant=is_participant_goal)
     
 
     # Render the template with the specific goal
-    return render_template('view_goal.html', goal=goal, is_creator_goal=False, is_participant_goal=False)
+    return render_template('view_goal.html', 
+                           goal=goal, 
+                           is_creator_goal=False,
+                           is_participant=False)
 
 @app.route('/delete_goal/<string:goal_id>', methods=['POST'])
 def delete_goal(goal_id):
@@ -216,7 +237,8 @@ def delete_goal(goal_id):
             db.session.delete(goal)
             db.session.commit()
             flash('Goal deleted successfully!', 'success')
-        except:
+        except Exception as e:
+            print(e)
             db.session.rollback()
             # Retry the operation or handle it appropriately
     else:
@@ -224,6 +246,65 @@ def delete_goal(goal_id):
 
     return redirect(url_for('dashboard'))
 
+@app.route('/join_goal/<string:goal_id>', methods=['POST'])
+def join_goal(goal_id):
+    # Check if the user is logged in
+    if 'user_id' not in session:
+        flash('You need to log in to join a goal.', 'warning')
+        return redirect(url_for('login'))
+
+    user_id = session['user_id']
+    user = db.session.get(User,user_id)
+    goal = db.session.get(Goal,goal_id)
+    
+    # Check if the user is not already a participant in the goal
+    if goal and user and user not in goal.participants:
+        # Add the user to the goal's participants
+        goal.add_participant(user)
+
+        # Add the goal to the user's list of goals
+        user.goals.append(goal)
+
+        # db.session.refresh(goal)
+        db.session.commit()
+
+        flash('You have successfully joined the goal!', 'success')
+        return redirect(url_for('view_goal', goal_id=goal_id))
+    else:
+        flash('You are already a participant in this goal.', 'danger')
+        return redirect(url_for('view_goal', goal_id=goal_id))
+
+@app.route('/leave_goal/<string:goal_id>', methods=['POST'])
+def leave_goal(goal_id):
+    # Check if the user is logged in
+    if 'user_id' not in session:
+        flash('You need to log in to leave a goal.', 'warning')
+        return redirect(url_for('login'))
+
+    user_id = session['user_id']
+    goal = db.session.get(Goal,goal_id)
+
+    # Check if the user is a participant in the goal
+    is_participant_goal = is_participant(user_id, goal_id)
+
+    # Check if the user is the creator of the goal
+    is_creator_goal = (goal.user_id == user_id if goal else False)
+
+    if is_participant_goal and not is_creator_goal:
+        # Remove the user from the goal's participants
+        user = db.session.get(User,user_id)
+        goal.remove_participant(user)
+
+        # Remove the goal from the user's list of goals
+        user.goals.remove(goal)
+
+        db.session.commit()
+
+        flash('You have successfully left the goal.', 'success')
+    else:
+        flash('You cannot leave the goal. Either you are not a participant or you are the creator.', 'danger')
+
+    return redirect(url_for('view_goal', goal_id=goal_id))
 
 if __name__ == '__main__':
     app.run(debug=True)
